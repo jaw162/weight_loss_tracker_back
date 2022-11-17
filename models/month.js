@@ -1,17 +1,4 @@
 const mongoose = require('mongoose')
-require('dotenv').config()
-
-const url = process.env.MONGODB_URI
-
-console.log('connecting to', url)
-
-mongoose.connect(url)
-    .then(() => {
-        console.log('Success')
-    })
-    .catch((err) => {
-        console.log(err)
-    })
 
 const monthSchema = new mongoose.Schema({
     monthYear: {
@@ -28,8 +15,9 @@ const monthSchema = new mongoose.Schema({
         type: Map,
         of: Number
     },
-    average: {
-        type: Number
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
     }
 })
 
