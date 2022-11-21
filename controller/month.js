@@ -3,36 +3,29 @@ const User = require('../models/user')
 const { format } = require('../utils/format')
 const dayjs = require('dayjs')
 const monthsRouter = require('express').Router()
-const jwt = require('jsonwebtoken')
 
 monthsRouter.post('/', async (req, res) => {
+    const user = await User.findById(req.user.id)
 
-    const decodedToken = jwt.verify(req.token, process.env.SECRET)
-    const user = await User.findById(decodedToken.id)
-
-    const [month] = await Month.find({ monthYear: req.body.monthYear, user: decodedToken.id })
+    const [month] = await Month.find({ monthYear: req.body.monthYear, user: req.user.id })
 
     if (month) {
 
         const formattedMonth = format(month)
 
-        const updatedEntries = { ...formattedMonth.entries, [req.body.day]: req.body.entry }
+        const updatedEntries = { ...formattedMonth.entries, [req.body.day]: Number(req.body.entry) }
 
         // if (month.entries[req.body.day]) {
         //     return res.status(400).json({ message: 'Already an entry' })
         // }
         
         const post = await Month.findOneAndUpdate(
-            { monthYear: req.body.monthYear, user: user.id },
+            { _id: formattedMonth._id },
             { "entries": updatedEntries },
             { new: true }
           )
 
-        // month.set('entries', updatedEntries)
-
-        const posted = await post.save()
-
-        res.status(200).json(posted)
+        res.status(200).json(post)
 
     } else {
         const entry = new Month({
@@ -61,8 +54,6 @@ monthsRouter.get('/', async (req, res) => {
 
     return res.json(mongoRes)
 
-    const decodedToken = jwt.verify(req.token, process.env.SECRET)
-
     mongoRes.forEach(item => {
         const entries = format(item)
         response[item.monthYear] = entries
@@ -77,11 +68,10 @@ monthsRouter.get('/', async (req, res) => {
 })
 
 monthsRouter.delete('/reset', async(req, res) => {
-    const decodedToken = jwt.verify(req.token, process.env.SECRET)
 
-    await Month.deleteMany({ user: decodedToken.id })
+    await Month.deleteMany({ user: req.user.id })
 
-    const updatedUser = await User.findOneAndUpdate({ _id: decodedToken.id }, { 'entries': [] }, { new: true })
+    const updatedUser = await User.findOneAndUpdate({ _id: req.user.id }, { 'entries': [] }, { new: true })
 
     // res.status(200).json({ message: 'success' })
     res.status(200).json(updatedUser)
@@ -89,8 +79,6 @@ monthsRouter.delete('/reset', async(req, res) => {
 })
 
 monthsRouter.post('/testData/:year', async(req, res) => {
-
-    const decodedToken = jwt.verify(req.token, process.env.SECRET)
     
     try {
 
@@ -111,7 +99,7 @@ monthsRouter.post('/testData/:year', async(req, res) => {
             new Month({
                 monthYear: dayjs(el).format('M/YY'),
                 entries: randomMonthEntries(dayjs(el).daysInMonth()),
-                user: decodedToken.id
+                user: req.user.id
             })
         ))
 
@@ -119,7 +107,7 @@ monthsRouter.post('/testData/:year', async(req, res) => {
 
         await promiseArray
 
-        const updatedUser = await User.findOneAndUpdate({ _id: decodedToken.id }, { 'entries': mongoEntries }, { new: true })
+        const updatedUser = await User.findOneAndUpdate({ _id: req.user.id }, { 'entries': mongoEntries }, { new: true })
 
 
         res.status(200).json({ message: 'Success' })

@@ -7,6 +7,10 @@ const userSchema = new mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Month'
     }],
+  config: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Config'
+  }
 })
 
 userSchema.set('toJSON', {

@@ -1,4 +1,3 @@
-const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
 const loginRouter = require('express').Router()
 const User = require('../models/user')
@@ -13,9 +12,7 @@ loginRouter.post('/', async (request, response) => {
     : await bcrypt.compare(password, user.passwordHash)
 
   if (!(user && passwordCorrect)) {
-    return response.status(401).json({
-      error: 'invalid username or password'
-    })
+    return response.status(401).json({ error: 'Incorrect Username or Password' })
   }
 
   const userForToken = {
@@ -28,13 +25,13 @@ loginRouter.post('/', async (request, response) => {
   response.setHeader('Set-Cookie', cookie.serialize('token', token, {
     httpOnly: true,
     maxAge: 60 * 60,
-    sameSite: 'strict',
-    path: '/'
+    // sameSite: process.env.NODE_ENV === 'production' ? true : 'none',
+    // secure: true
   }))
 
   response
     .status(200)
-    .send({ token, username: user.username, name: user.name })
+    .send({ username: user.username })
 })
 
 module.exports = loginRouter
