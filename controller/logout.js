@@ -6,8 +6,8 @@ logoutRouter.post('/', async (request, response) => {
     response.setHeader('Set-Cookie', cookie.serialize('token', request.token, {
       httpOnly: true,
       expires: new Date(0),
-      sameSite: 'strict',
-      path: '/'
+      sameSite: process.env.NODE_ENV === 'production' ? true : 'none',
+      secure: true
     }))
   
     response

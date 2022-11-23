@@ -2,6 +2,7 @@ const Month = require('../models/month')
 const User = require('../models/user')
 const { format } = require('../utils/format')
 const dayjs = require('dayjs')
+const { update } = require('../models/user')
 const monthsRouter = require('express').Router()
 
 monthsRouter.post('/', async (req, res) => {
@@ -47,25 +48,25 @@ monthsRouter.post('/', async (req, res) => {
     }
 })
 
-monthsRouter.get('/', async (req, res) => {
-    const mongoRes = await Month.find({}).populate('user', { id: 1, username: 1 })
+// monthsRouter.get('/', async (req, res) => {
+//     const mongoRes = await Month.find({}).populate('user', { id: 1, username: 1 })
 
-    const response = {}
+//     const response = {}
 
-    return res.json(mongoRes)
+//     return res.json(mongoRes)
 
-    mongoRes.forEach(item => {
-        const entries = format(item)
-        response[item.monthYear] = entries
-        const entriesArray = Object.values(entries)
-        const sum = entriesArray.reduce((a, b) => (
-            a + b
-        ), 0)
-        response[item.monthYear]['average'] = Number((sum / entriesArray.length).toFixed(2))
-    })
+//     mongoRes.forEach(item => {
+//         const entries = format(item)
+//         response[item.monthYear] = entries
+//         const entriesArray = Object.values(entries)
+//         const sum = entriesArray.reduce((a, b) => (
+//             a + b
+//         ), 0)
+//         response[item.monthYear]['average'] = Number((sum / entriesArray.length).toFixed(2))
+//     })
 
-    res.status(200).json(response)
-})
+//     res.status(200).json(response)
+// })
 
 monthsRouter.delete('/reset', async(req, res) => {
 
@@ -75,6 +76,33 @@ monthsRouter.delete('/reset', async(req, res) => {
 
     // res.status(200).json({ message: 'success' })
     res.status(200).json(updatedUser)
+
+})
+
+monthsRouter.delete('/:day/:monthYear', async(req, res) => {
+
+    const [monthToUpdate] = await Month.find({ monthYear: req.params.monthYear, user: req.user.id })
+
+    const { entries } = format(monthToUpdate)
+
+    const { [req.params.day]: _, ...updatedEntries } = entries
+    
+    // console.log(Object.keys(updatedEntries))
+    // return res.status(200).json({ a: 'b' })
+
+    if (!Object.keys(updatedEntries).length) {
+
+        await Month.findByIdAndDelete({ _id: monthToUpdate.id })
+
+        return res.status(200).json({ message: 'Success' })
+
+    } else {
+
+        const updatedMonth = await Month.findOneAndUpdate({ _id: monthToUpdate.id }, { 'entries': updatedEntries }, { new: true })
+
+        return res.status(200).json(updatedMonth)
+    }
+
 
 })
 

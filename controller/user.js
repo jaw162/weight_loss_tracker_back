@@ -22,9 +22,9 @@ usersRouter.get('/me', async (request, response) => {
 
 usersRouter.get('/check', async (request, response) => {
   
-    const user = User.findById(request.user.id).populate('username')
+    const user = await User.findById(request.user.id)
 
-    return response.status(200).json({ message: 'Welcome Back' })
+    return response.status(200).json({ username: user.username })
 })
 
 usersRouter.post('/', async (request, response) => {
