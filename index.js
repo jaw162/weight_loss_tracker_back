@@ -38,6 +38,6 @@ app.use('/api/logout', logoutRouter)
 
 
 
-app.listen(`0.0.0.0:${process.env.$PORT}`, () => {
+app.listen(process.env.PORT || 3001, () => {
     console.log('app is running');
 });
