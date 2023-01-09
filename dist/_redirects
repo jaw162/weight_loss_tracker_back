@@ -1,6 +1,6 @@
 [[redirects]]
   from = "/api/*"
-  to = "https://scintillating-flan-a6fbb1.netlify.app/:splat"
+  to = "https://scintillating-flan-a6fbb1.netlify.app/api/:splat"
   status = 200
   force = true
 
